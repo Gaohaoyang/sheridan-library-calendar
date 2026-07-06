@@ -668,12 +668,11 @@ async function copyText(s) {
 }
 
 async function shareActivity(a) {
+  // Share the bare URL only: some share targets glue title/text onto the
+  // link without a separator, producing a broken oversized URL
   const url = deepLink(a.id);
-  const when = a.sessions === 1
-    ? `${zhDate(a.firstDate)}（${ZH_DOW[a.weekday]}）${a.timeRange}`
-    : `每${ZH_DOW[a.weekday]} ${a.timeRange}`;
   if (navigator.share) {
-    try { await navigator.share({ title: a.name, text: `${a.name} · ${when} @ ${a.center.name}`, url }); return; }
+    try { await navigator.share({ url }); return; }
     catch (e) { if (e.name === 'AbortError') return; }
   }
   if (await copyText(url)) toast('链接已复制');
