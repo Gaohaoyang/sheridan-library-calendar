@@ -2,7 +2,7 @@
 
 **在线访问：<https://gaohaoyang.github.io/sheridan-library-calendar/>**
 
-一个自包含的静态页面，把 [ActiveMississauga 活动搜索](https://anc.ca.apm.activecommunities.com/activemississauga/activity/search?onlineSiteId=0&activity_select_param=2&center_ids=46&min_age=1&activity_department_ids=5&max_age=6&viewMode=list)（Sheridan Library / 1–6 岁 / Library 部门）里的全部活动整理成日历。长期使用：数据每天自动同步，换季后新活动会自然进入日历。
+一个自包含的静态页面，把 [ActiveMississauga 活动搜索](https://anc.ca.apm.activecommunities.com/activemississauga/activity/search?onlineSiteId=0&activity_select_param=2&center_ids=46&min_age=0&activity_department_ids=5&max_age=6&viewMode=list)（Sheridan Library / 0–6 岁 / Library 部门）里的全部活动整理成日历。长期使用：数据每天自动同步，换季后新活动会自然进入日历。
 
 ## 功能
 

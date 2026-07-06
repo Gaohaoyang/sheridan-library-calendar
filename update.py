@@ -2,7 +2,7 @@
 """Refetch Sheridan Library activities from ActiveMississauga and rewrite
 the data block in index.html (between /*__DATA_START__*/ and /*__DATA_END__*/).
 
-Search filter: center 46 (Sheridan Library), ages 1-6, department 5 (Library).
+Search filter: center 46 (Sheridan Library), ages 0-6, department 5 (Library).
 Uses only the Python standard library.
 """
 import json
@@ -19,7 +19,7 @@ SEARCH = {
         "skills": [], "time_after_str": "", "days_of_week": None,
         "activity_select_param": 2, "center_ids": [46], "time_before_str": "",
         "open_spots": None, "activity_id": None, "activity_category_ids": [],
-        "date_before": "", "min_age": 1, "date_after": "", "activity_type_ids": [],
+        "date_before": "", "min_age": 0, "date_after": "", "activity_type_ids": [],
         "site_ids": [], "for_map": False, "geographic_area_ids": [],
         "season_ids": [], "activity_department_ids": [5],
         "activity_other_category_ids": [], "child_season_ids": [],
