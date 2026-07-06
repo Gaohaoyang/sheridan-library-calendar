@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sheridan Library · 家庭活动日历</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #FDF8EF;
+  --paper-dim: #F6EFE1;
+  --ink: #2A2620;
+  --ink-soft: #6E6558;
+  --line: #E4DAC8;
+  --stamp: #3D53A0;
+  --stamp-faded: #A39B8D;
+  --closed: #B3402F;
+  --card: #FFFFFF;
+  --radius: 14px;
+  --display: 'Baloo 2', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+  --mono-stamp: 'Special Elite', 'Courier New', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--body);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+}
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 2.5px solid var(--stamp); outline-offset: 2px; border-radius: 4px; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 28px 20px 60px; }
+
+/* ---------- header ---------- */
+.topbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+.eyebrow {
+  font-family: var(--display); font-weight: 700; font-size: 13px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft);
+}
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(30px, 4.5vw, 44px); line-height: 1.1; letter-spacing: -0.01em; }
+.sub { color: var(--ink-soft); font-size: 14px; margin-top: 6px; }
+.sub a { color: var(--stamp); }
+.stamp-badge {
+  font-family: var(--mono-stamp); color: var(--stamp); font-size: 14px;
+  border: 2px solid var(--stamp); border-radius: 8px 10px 9px 11px;
+  padding: 7px 13px 5px; transform: rotate(-4deg); letter-spacing: 0.08em;
+  text-transform: uppercase; white-space: nowrap; user-select: none;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.7'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.86 0.14'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- month tabs ---------- */
+.monthbar { display: flex; align-items: center; gap: 10px; margin: 24px 0 14px; flex-wrap: wrap; }
+.month-tabs { display: inline-flex; background: var(--paper-dim); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.month-tab {
+  font-family: var(--display); font-weight: 700; font-size: 15px;
+  padding: 6px 22px; border-radius: 999px; color: var(--ink-soft);
+  transition: background 0.18s, color 0.18s;
+}
+.month-tab.active { background: var(--ink); color: var(--paper); }
+.month-count { font-size: 13px; color: var(--ink-soft); }
+
+/* ---------- legend ---------- */
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; text-align: left;
+  border: 1px solid var(--line); background: var(--card);
+  border-radius: 999px; padding: 5px 12px 5px 7px; font-size: 12.5px; font-weight: 500;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.chip:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(42,38,32,0.1); }
+.chip .dot { width: 13px; height: 13px; border-radius: 4px; flex: none; }
+.chip .when { color: var(--ink-soft); font-size: 11px; }
+
+/* ---------- calendar ---------- */
+.cal { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 14px rgba(42,38,32,0.05); }
+.cal-head { display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid var(--line); background: var(--paper-dim); }
+.cal-head div {
+  font-family: var(--display); font-weight: 700; font-size: 12.5px; letter-spacing: 0.06em;
+  text-align: center; padding: 9px 0; color: var(--ink-soft);
+}
+.cal-head div.wkend { color: var(--stamp); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.day {
+  min-height: 128px; min-width: 0; overflow: hidden;
+  padding: 6px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.day:nth-child(7n) { border-right: none; }
+.day.other { background: var(--paper-dim); }
+.day.other .dnum { opacity: 0.35; }
+.day.wkend { background: #FBF4E6; }
+.day.other.wkend { background: var(--paper-dim); }
+.dnum { font-family: var(--display); font-weight: 600; font-size: 13px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+.day.today .dnum span.n {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid var(--stamp); color: var(--stamp); font-weight: 800;
+  transform: rotate(-6deg);
+}
+.today-tag { font-family: var(--mono-stamp); font-size: 10px; color: var(--stamp); letter-spacing: 0.08em; }
+.evt {
+  display: flex; flex-direction: column; gap: 1px; width: 100%;
+  text-align: left; font-size: 11.5px; font-weight: 650; line-height: 1.3;
+  padding: 5px 7px; border-radius: 7px; border-left: 3px solid;
+  transition: transform 0.14s, box-shadow 0.14s;
+}
+.evt:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(42,38,32,0.14); }
+.evt .t { font-family: var(--display); font-weight: 700; font-size: 10px; letter-spacing: 0.02em; opacity: 0.85; }
+.evt .n { min-width: 0; word-break: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.evt .b {
+  font-size: 10.5px; font-weight: 500; opacity: 0.78; line-height: 1.35;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.evt.past { opacity: 0.45; }
+
+/* ---------- agenda (mobile list view) ---------- */
+.agenda { display: none; }
+.ag-month {
+  position: -webkit-sticky; position: sticky; top: 0; z-index: 5;
+  margin: 0 -14px; padding: 11px 16px 8px;
+  background: rgba(253, 248, 239, 0.92);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  font-family: var(--display); font-weight: 800; font-size: 17px;
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 8px 14px -12px rgba(42, 38, 32, 0.35);
+}
+.ag-month small { font-weight: 600; font-size: 12px; color: var(--ink-soft); margin-left: 6px; }
+.ag-day { display: flex; gap: 12px; padding: 13px 2px; border-bottom: 1px dashed var(--line); }
+.ag-day:last-child { border-bottom: none; }
+.ag-day.past { opacity: 0.55; }
+.ag-date { flex: none; width: 48px; text-align: center; padding-top: 2px; }
+.ag-num { display: block; font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1.2; }
+.ag-dow { display: block; font-size: 11px; color: var(--ink-soft); margin-top: 1px; }
+.ag-day.today .ag-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; margin: 0 auto;
+  border: 2px solid var(--stamp); border-radius: 50%;
+  color: var(--stamp); transform: rotate(-6deg);
+}
+.ag-day.today .ag-dow { color: var(--stamp); font-weight: 700; }
+.ag-evts { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.ag-evt {
+  display: block; width: 100%; text-align: left;
+  padding: 9px 12px 10px; border-radius: 10px; border-left: 4px solid;
+}
+.ag-evt .t { display: block; font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.02em; opacity: 0.85; }
+.ag-evt .n { display: block; font-size: 14.5px; font-weight: 650; line-height: 1.3; margin-top: 1px; }
+.ag-evt .b { display: block; font-size: 12.5px; font-weight: 500; opacity: 0.8; line-height: 1.45; margin-top: 2px; }
+
+/* ---------- footer ---------- */
+.foot { margin-top: 22px; font-size: 12.5px; color: var(--ink-soft); display: flex; gap: 6px; flex-wrap: wrap; }
+.foot a { color: var(--stamp); }
+
+/* ---------- side panel ---------- */
+.scrim {
+  position: fixed; inset: 0; background: rgba(42,38,32,0.35);
+  opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 40;
+}
+.scrim.show { opacity: 1; pointer-events: auto; }
+.panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: min(430px, 100vw);
+  background: var(--card); z-index: 50; overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: translateX(102%); transition: transform 0.32s cubic-bezier(0.32, 0.9, 0.35, 1);
+  box-shadow: -12px 0 40px rgba(42,38,32,0.18);
+}
+.panel.open { transform: translateX(0); }
+.panel-head { padding: 26px 24px 18px; border-bottom: 1px dashed var(--line); }
+.panel-close {
+  position: absolute; top: 14px; right: 14px; width: 34px; height: 34px;
+  border-radius: 50%; background: rgba(255,255,255,0.75); font-size: 17px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; color: var(--ink);
+}
+.panel-close:hover { background: #fff; }
+.panel-eyebrow { font-family: var(--display); font-weight: 700; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 6px; }
+.panel-title { font-family: var(--display); font-weight: 800; font-size: 25px; line-height: 1.15; letter-spacing: -0.01em; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.tag { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.7); border: 1px solid rgba(42,38,32,0.12); }
+.panel-body { padding: 20px 24px 30px; }
+.sec-label { font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); margin: 20px 0 8px; }
+.sec-label:first-child { margin-top: 0; }
+.desc { font-size: 14px; line-height: 1.75; }
+.meta { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 13.5px; }
+.meta dt { color: var(--ink-soft); white-space: nowrap; }
+.meta dd { font-weight: 500; }
+.meta dd small { display: block; font-weight: 400; color: var(--ink-soft); }
+.dates { display: flex; flex-wrap: wrap; gap: 9px; }
+.dstamp {
+  font-family: var(--mono-stamp); font-size: 13px; letter-spacing: 0.05em;
+  color: var(--stamp); border: 1.5px solid currentColor;
+  border-radius: 7px 10px 8px 11px; padding: 5px 9px 3px; text-transform: uppercase;
+  user-select: none;
+}
+.dstamp:nth-child(odd) { transform: rotate(-2deg); }
+.dstamp:nth-child(even) { transform: rotate(1.6deg); }
+.dstamp:nth-child(3n) { transform: rotate(2.4deg); }
+.dstamp.past { color: var(--stamp-faded); }
+.dstamp.today { background: var(--stamp); color: #fff; border-color: var(--stamp); }
+.dstamp.skip { color: var(--closed); text-decoration: line-through; }
+.dstamp.picked { box-shadow: 0 0 0 2.5px var(--paper), 0 0 0 5px currentColor; }
+.skip-note { font-size: 12px; color: var(--closed); margin-top: 9px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.abtn {
+  font-family: var(--display); font-weight: 700; font-size: 13px;
+  padding: 8px 15px; border-radius: 999px; border: 1.5px solid var(--ink);
+  background: transparent; color: var(--ink); text-decoration: none; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.abtn:hover { background: var(--ink); color: var(--paper); }
+.go {
+  display: inline-block; margin-top: 14px; font-family: var(--display); font-weight: 700; font-size: 14.5px;
+  background: var(--ink); color: var(--paper); text-decoration: none;
+  padding: 11px 20px; border-radius: 999px; transition: transform 0.15s, box-shadow 0.15s;
+}
+.go:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(42,38,32,0.25); }
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(8px);
+  background: var(--ink); color: var(--paper); padding: 9px 18px; border-radius: 999px;
+  font-size: 13px; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s; z-index: 80;
+}
+.toast.show { opacity: 1; transform: translateX(-50%); }
+
+@media (max-width: 720px) {
+  .wrap { padding: 18px 14px 40px; }
+  .cal { display: none; }
+  .monthbar { display: none; }
+  .agenda { display: block; }
+  .legend { margin-bottom: 16px; }
+  .stamp-badge { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">Mississauga Library · Sheridan Branch</div>
+      <h1>家庭活动日历</h1>
+      <p class="sub">Sheridan Library（2225 Erin Mills Parkway）面向 1–6 岁孩子家庭的全部活动 ·
+        <a href="https://anc.ca.apm.activecommunities.com/activemississauga/activity/search?onlineSiteId=0&activity_select_param=2&center_ids=46&min_age=1&activity_department_ids=5&max_age=6&viewMode=list" target="_blank" rel="noopener">官网搜索页 ↗</a></p>
+    </div>
+    <div class="stamp-badge">Free · Drop-in<br>No registration</div>
+  </header>
+
+  <div class="monthbar">
+    <div class="month-tabs" id="monthTabs" role="tablist" aria-label="选择月份"></div>
+    <span class="month-count" id="monthCount"></span>
+  </div>
+
+  <div class="legend" id="legend" aria-label="活动列表"></div>
+
+  <div class="cal" id="cal">
+    <div class="cal-head" id="calHead"></div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="agenda" id="agenda" aria-label="本月日程"></div>
+
+  <p class="foot">
+    <span>数据每日自动同步自 ActiveMississauga（数据版本 <span id="updatedAt"></span>）·</span>
+    <span>所有活动免费、无需报名（drop-in），先到先得 ·</span>
+    <span>如需最新信息请以<a href="https://anc.ca.apm.activecommunities.com/activemississauga/activity/search?onlineSiteId=0&activity_select_param=2&center_ids=46&min_age=1&activity_department_ids=5&max_age=6&viewMode=list" target="_blank" rel="noopener">官网</a>为准</span>
+    <span id="liveStatus"></span>
+  </p>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" aria-hidden="true">
+  <div class="panel-head" id="panelHead">
+    <button class="panel-close" id="panelClose" aria-label="关闭详情">✕</button>
+    <div class="panel-eyebrow" id="panelEyebrow"></div>
+    <h2 class="panel-title" id="panelTitle"></h2>
+    <div class="tags" id="panelTags"></div>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</aside>
+
+<script>
+/*__DATA_START__*/
+const DATA_UPDATED = "2026-07-06";
+const ACTIVITIES = [{"id":149332,"name":"3D Printer Introduction","number":"151345","desc":"Learn about 3D printing and the process for printing your own designs.","category":"Maker Mississauga","subCategory":"All Ages","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-08-04","lastDate":"2026-08-04","sessions":1,"weekday":"Tue","startTime":"18:00:00","endTime":"19:00:00","exceptions":[],"timeRange":"6:00 PM - 7:00 PM","spaceStatus":"10 openings remaining","totalOpen":10,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/3d-printer-introduction/149332?locale=en-US"},{"id":149336,"name":"Family Board Games","number":"151349","desc":"Get your game on and play against friends old and new.","category":"Social Activities","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-07-02","lastDate":"2026-08-27","sessions":9,"weekday":"Thu","startTime":"18:00:00","endTime":"19:00:00","exceptions":[],"timeRange":"6:00 PM - 7:00 PM","spaceStatus":"25 openings remaining","totalOpen":25,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/family-board-games/149336?locale=en-US"},{"id":149337,"name":"Family LEGO","number":"151350","desc":"Drop in, build and create using LEGO® blocks with the whole family. Note: This program is intended for children, with a caregiver.","category":"Maker Mississauga","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-07-04","lastDate":"2026-08-29","sessions":9,"weekday":"Sat","startTime":"14:00:00","endTime":"15:00:00","exceptions":[],"timeRange":"2:00 PM - 3:00 PM","spaceStatus":"25 openings remaining","totalOpen":25,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/family-lego/149337?locale=en-US"},{"id":149338,"name":"Family STEAM","number":"151351","desc":"Have fun practicing your STEAM skills together as a family! Activities range from coding, circuitry, cyphers, puppet making, marble runs and more, inquire with the hosting location for more details.","category":"Maker Mississauga","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-07-07","lastDate":"2026-08-11","sessions":6,"weekday":"Tue","startTime":"14:00:00","endTime":"15:00:00","exceptions":[],"timeRange":"2:00 PM - 3:00 PM","spaceStatus":"16 openings remaining","totalOpen":16,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/family-steam/149338?locale=en-US"},{"id":149339,"name":"Family Storytime","number":"151352","desc":"An interactive program with stories, songs, rhymes and early literacy activities. Note: This program is intended for children, with a caregiver.","category":"Books & Reading","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-06-29","lastDate":"2026-08-24","sessions":8,"weekday":"Mon","startTime":"10:30:00","endTime":"11:00:00","exceptions":["3 Aug 2026"],"timeRange":"10:30 AM - 11:00 AM","spaceStatus":"25 openings remaining","totalOpen":25,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/family-storytime/149339?locale=en-US"},{"id":149340,"name":"Family Storytime","number":"151353","desc":"An interactive program with stories, songs, rhymes and early literacy activities. Note: This program is intended for children, with a caregiver.","category":"Books & Reading","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-07-03","lastDate":"2026-08-28","sessions":9,"weekday":"Fri","startTime":"10:30:00","endTime":"11:00:00","exceptions":[],"timeRange":"10:30 AM - 11:00 AM","spaceStatus":"25 openings remaining","totalOpen":25,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/family-storytime/149340?locale=en-US"},{"id":157628,"name":"Fire Truck Visit: Mississauga Fire Meet & Greet","number":"159641","desc":"Check out a working fire truck, meet some of Mississauga’s local heroes and learn what it takes to do this important job! This program will take place in the library parking lot. Presented by Mississauga Fire & Emergency Services. Please be advised: The crew is on active duty and may be called out to an emergency before or during these visits.","category":"Books & Reading","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-07-09","lastDate":"2026-07-09","sessions":1,"weekday":"Thu","startTime":"14:00:00","endTime":"15:00:00","exceptions":[],"timeRange":"2:00 PM - 3:00 PM","spaceStatus":"100 openings remaining","totalOpen":100,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/fire-truck-visit-mississauga-fire-meet-greet/157628?locale=en-US"},{"id":157595,"name":"Pawsitively Pets: Animal Show","number":"159608","desc":"Get ready for a paws-itively unforgettable experience! Join Pawsitively Pets for a hands-on animal event where children will meet, touch, and learn about their friendly animal ambassadors! Meet all things furry, feathered, slithery and slimy. Perfect for curious kids who love animals and families looking for a fun, meaningful experience together. Admission to programs is on a first-come, first-served basis. A limited number of free reservation tickets may be available at the host location beginning 30 minutes before the program start time. Unless otherwise noted, all programs are intended for children and families of all ages.","category":"Books & Reading","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-07-27","lastDate":"2026-07-27","sessions":1,"weekday":"Mon","startTime":"14:00:00","endTime":"14:45:00","exceptions":[],"timeRange":"2:00 PM - 2:45 PM","spaceStatus":"40 openings remaining","totalOpen":40,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/pawsitively-pets-animal-show/157595?locale=en-US"},{"id":157600,"name":"Princess & Superhero Visit","number":"159613","desc":"Have you ever dreamed of meeting a Princess and a Superhero on the same day? Don’t miss this extraordinary opportunity to have a visit with two specials (surprise) guests at the library! Listen to their stories and watch them perform, sing along with a princess and maybe even try out some superhero moves. It will be just like a dream come true! Presented in partnership with Inspiring Imaginations. Admission to programs is on a first-come, first-served basis. A limited number of free reservation tickets may be available at the host location beginning 30 minutes before the program start time. Unless otherwise noted, all programs are intended for children and families of all ages.","category":"Books & Reading","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-08-10","lastDate":"2026-08-10","sessions":1,"weekday":"Mon","startTime":"14:00:00","endTime":"14:45:00","exceptions":[],"timeRange":"2:00 PM - 2:45 PM","spaceStatus":"40 openings remaining","totalOpen":40,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/princess-superhero-visit/157600?locale=en-US"},{"id":149343,"name":"Summer Adventures","number":"151356","desc":"Join us for a weekly fun-filled program related to this year’s TD Summer Reading Club theme, Dive In. Through stories, songs, crafts, games and other activities, children will discover and learn all summer long!","category":"Books & Reading","subCategory":"Family/Group","type":"Drop In Program","ages":"All ages","season":"2026 Summer","firstDate":"2026-07-08","lastDate":"2026-08-12","sessions":6,"weekday":"Wed","startTime":"14:00:00","endTime":"14:45:00","exceptions":[],"timeRange":"2:00 PM - 2:45 PM","spaceStatus":"25 openings remaining","totalOpen":25,"facility":"Sheridan Library - Program Area","center":{"name":"Sheridan Library","address":"2225 Erin Mills Parkway, Mississauga, ON L5K 1T9","phone":"(905) 615-4815"},"url":"https://ca.apm.activecommunities.com/activemississauga/Activity_Search/summer-adventures/149343?locale=en-US"}];
+/*__DATA_END__*/
+
+// Per-activity colours, keyed by activity id, grounded in each program's subject
+const COLORS = {
+  149332: { dot: '#2FA3A0', bg: '#DAF2F1', ink: '#14615E' }, // 3D printer — teal
+  149336: { dot: '#8A63C9', bg: '#ECE3F9', ink: '#4F3187' }, // board games — grape
+  149337: { dot: '#E4586B', bg: '#FCE3E7', ink: '#8E2436' }, // LEGO — brick red
+  149338: { dot: '#3E9BD6', bg: '#DDEFFA', ink: '#175D8C' }, // STEAM — sky
+  149339: { dot: '#E8A020', bg: '#FBEFD3', ink: '#7A5305' }, // storytime Mon — marigold
+  149340: { dot: '#E07038', bg: '#FBE6D9', ink: '#8C3D12' }, // storytime Fri — clay
+  157628: { dot: '#D9453A', bg: '#FBDFDC', ink: '#8F1F16' }, // fire truck — fire red
+  157595: { dot: '#55A863', bg: '#DFF2E2', ink: '#2A6B37' }, // animal show — leaf
+  157600: { dot: '#D963B8', bg: '#F9E1F2', ink: '#863070' }, // princess & hero — rose
+  149343: { dot: '#4169C9', bg: '#E0E8FA', ink: '#23408F' }, // summer adventures (Dive In) — ocean
+};
+
+// Hand-written one-line Chinese summaries shown on the calendar pills
+// (outside the data markers, so update.py leaves them alone)
+const ZH_BRIEF = {
+  149332: '3D 打印入门，了解如何打印自己的设计',
+  149336: '家庭桌游夜，和新老朋友一起对战',
+  149337: '全家一起用乐高自由搭建创作',
+  149338: '动手 STEAM：编程、电路、木偶、弹珠轨道等',
+  149339: '故事、儿歌、童谣和早期识字互动',
+  149340: '故事、儿歌、童谣和早期识字互动',
+  157628: '停车场里近距离看消防车、见消防员',
+  157595: '动物见面会：摸一摸毛茸茸的动物大使',
+  157600: '公主和超级英雄见面会，唱歌表演互动',
+  149343: '夏季阅读俱乐部主题周活动：故事、手工、游戏',
+};
+
+const ZH_DOW = { Mon: '周一', Tue: '周二', Wed: '周三', Thu: '周四', Fri: '周五', Sat: '周六', Sun: '周日' };
+const EN_MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const MONTH_ABBR = { Jan:1, Feb:2, Mar:3, Apr:4, May:5, Jun:6, Jul:7, Aug:8, Sep:9, Oct:10, Nov:11, Dec:12 };
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function iso(y, m, d) { return `${y}-${pad(m)}-${pad(d)}`; }
+function parseIso(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function parseException(s) { // "3 Aug 2026"
+  const [d, mon, y] = s.trim().split(/\s+/);
+  return iso(Number(y), MONTH_ABBR[mon], Number(d));
+}
+function todayIso() {
+  const t = new Date();
+  return iso(t.getFullYear(), t.getMonth() + 1, t.getDate());
+}
+function fmtTime(t) { // "14:00:00" -> "2:00 PM"
+  let [h, m] = t.split(':').map(Number);
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${pad(m)} ${ap}`;
+}
+function shortTime(t) { return t.slice(0, 5); } // 24h for calendar pills
+
+// All concrete session dates of an activity (exceptions marked)
+function sessionDates(a) {
+  const skips = new Set(a.exceptions.map(parseException));
+  const out = [];
+  const end = parseIso(a.lastDate);
+  for (let d = parseIso(a.firstDate); d <= end; d.setDate(d.getDate() + 7)) {
+    const s = iso(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    out.push({ date: s, skipped: skips.has(s) });
+  }
+  return out;
+}
+
+// date -> [activity], plus months that contain at least one session.
+// Rebuilt again if a live refresh changes any date range.
+const byDate = new Map();
+let monthKeys = [];
+const TODAY = todayIso();
+let activeMonth = null;
+function rebuildData() {
+  byDate.clear();
+  for (const a of ACTIVITIES) {
+    for (const s of sessionDates(a)) {
+      if (s.skipped) continue; // closures don't appear on the calendar
+      if (!byDate.has(s.date)) byDate.set(s.date, []);
+      byDate.get(s.date).push(a);
+    }
+  }
+  for (const list of byDate.values()) list.sort((x, y) => x.startTime.localeCompare(y.startTime));
+  monthKeys = [...new Set([...byDate.keys()].map(d => d.slice(0, 7)))].sort();
+  if (!monthKeys.includes(activeMonth)) {
+    activeMonth = monthKeys.includes(TODAY.slice(0, 7)) ? TODAY.slice(0, 7) : monthKeys[0];
+  }
+}
+rebuildData();
+
+// ---------- render: month tabs ----------
+const tabsEl = document.getElementById('monthTabs');
+function renderTabs() {
+  tabsEl.innerHTML = '';
+  for (const mk of monthKeys) {
+    const [y, m] = mk.split('-').map(Number);
+    const b = document.createElement('button');
+    b.className = 'month-tab' + (mk === activeMonth ? ' active' : '');
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', mk === activeMonth);
+    b.textContent = `${m}月`;
+    b.title = `${y}年${m}月`;
+    b.addEventListener('click', () => { activeMonth = mk; renderTabs(); renderCal(); });
+    tabsEl.appendChild(b);
+  }
+  const n = [...byDate.entries()].filter(([d]) => d.startsWith(activeMonth)).reduce((s, [, l]) => s + l.length, 0);
+  document.getElementById('monthCount').textContent = `${activeMonth.slice(0, 4)} 年 · 本月 ${n} 场活动`;
+}
+
+// ---------- render: legend ----------
+const legendEl = document.getElementById('legend');
+for (const a of ACTIVITIES) {
+  const c = COLORS[a.id];
+  const b = document.createElement('button');
+  b.className = 'chip';
+  b.innerHTML = `<span class="dot" style="background:${c.dot}"></span><span>${a.name}</span><span class="when">${ZH_DOW[a.weekday]} ${shortTime(a.startTime)}</span>`;
+  b.addEventListener('click', () => openPanel(a));
+  legendEl.appendChild(b);
+}
+
+// ---------- render: calendar ----------
+const headEl = document.getElementById('calHead');
+['周一', '周二', '周三', '周四', '周五', '周六', '周日'].forEach((w, i) => {
+  const d = document.createElement('div');
+  d.textContent = w;
+  if (i >= 5) d.className = 'wkend';
+  headEl.appendChild(d);
+});
+
+const gridEl = document.getElementById('calGrid');
+function renderCal() {
+  gridEl.innerHTML = '';
+  const [y, m] = activeMonth.split('-').map(Number);
+  const first = new Date(y, m - 1, 1);
+  const start = new Date(first);
+  start.setDate(1 - ((first.getDay() + 6) % 7)); // back to Monday
+  const last = new Date(y, m, 0);
+  const end = new Date(last);
+  end.setDate(last.getDate() + (7 - ((last.getDay() + 6) % 7) - 1));
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const dISO = iso(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    const cell = document.createElement('div');
+    const dow = (d.getDay() + 6) % 7;
+    cell.className = 'day' + (d.getMonth() !== m - 1 ? ' other' : '') + (dow >= 5 ? ' wkend' : '') + (dISO === TODAY ? ' today' : '');
+    const num = document.createElement('div');
+    num.className = 'dnum';
+    num.innerHTML = `<span class="n">${d.getDate()}</span>` + (dISO === TODAY ? '<span class="today-tag">今天</span>' : '');
+    cell.appendChild(num);
+    for (const a of (byDate.get(dISO) || [])) {
+      const c = COLORS[a.id];
+      const e = document.createElement('button');
+      e.className = 'evt' + (dISO < TODAY ? ' past' : '');
+      e.style.background = c.bg;
+      e.style.borderLeftColor = c.dot;
+      e.style.color = c.ink;
+      e.innerHTML = `<span class="t">${shortTime(a.startTime)}–${shortTime(a.endTime)}</span><span class="n">${a.name}</span><span class="b">${ZH_BRIEF[a.id] || ''}</span>`;
+      e.title = `${a.name} · ${a.timeRange}`;
+      e.addEventListener('click', () => openPanel(a, dISO));
+      cell.appendChild(e);
+    }
+    gridEl.appendChild(cell);
+  }
+}
+
+// Mobile list view: the whole season as one long list, split by month headers
+const agendaEl = document.getElementById('agenda');
+function renderAgenda() {
+  agendaEl.innerHTML = '';
+  const zhDows = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  const dayKeys = [...byDate.keys()].sort();
+  let curMonth = '';
+  for (const k of dayKeys) {
+    if (k.slice(0, 7) !== curMonth) {
+      curMonth = k.slice(0, 7);
+      const [hy, hm] = curMonth.split('-').map(Number);
+      const h = document.createElement('div');
+      h.className = 'ag-month';
+      h.innerHTML = `${hm}月<small>${hy}</small>`;
+      agendaEl.appendChild(h);
+    }
+    const [yy, mm, dd] = k.split('-').map(Number);
+    const dowIdx = (new Date(yy, mm - 1, dd).getDay() + 6) % 7;
+    const row = document.createElement('div');
+    row.className = 'ag-day' + (k === TODAY ? ' today' : '') + (k < TODAY ? ' past' : '');
+    row.innerHTML = `<div class="ag-date"><span class="ag-num">${dd}</span><span class="ag-dow">${k === TODAY ? '今天' : zhDows[dowIdx]}</span></div>`;
+    const evts = document.createElement('div');
+    evts.className = 'ag-evts';
+    for (const a of byDate.get(k)) {
+      const c = COLORS[a.id];
+      const e = document.createElement('button');
+      e.className = 'ag-evt';
+      e.style.background = c.bg;
+      e.style.borderLeftColor = c.dot;
+      e.style.color = c.ink;
+      e.innerHTML = `<span class="t">${shortTime(a.startTime)}–${shortTime(a.endTime)}</span><span class="n">${a.name}</span><span class="b">${ZH_BRIEF[a.id] || ''}</span>`;
+      e.addEventListener('click', () => openPanel(a, k));
+      evts.appendChild(e);
+    }
+    row.appendChild(evts);
+    agendaEl.appendChild(row);
+  }
+}
+
+// ---------- side panel ----------
+const panel = document.getElementById('panel');
+const scrim = document.getElementById('scrim');
+let lastFocus = null;
+
+// Freeze the page behind the panel (position:fixed also covers iOS Safari,
+// where overflow:hidden on body does not stop touch scrolling)
+let savedScrollY = 0;
+function lockScroll() {
+  savedScrollY = window.scrollY;
+  const b = document.body.style;
+  b.position = 'fixed';
+  b.top = `-${savedScrollY}px`;
+  b.left = '0';
+  b.right = '0';
+  b.width = '100%';
+  b.overflow = 'hidden';
+}
+function unlockScroll() {
+  const b = document.body.style;
+  b.position = b.top = b.left = b.right = b.width = b.overflow = '';
+  window.scrollTo(0, savedScrollY);
+}
+
+function zhDate(s) { const [, m, d] = s.split('-').map(Number); return `${m}月${d}日`; }
+
+// Deep link: ?activity=<id> mirrors the open panel (hash fallback for file://,
+// where pushState may be blocked)
+let historyPushed = false; // we added one history entry for the open panel
+function getUrlActivity() {
+  const q = new URLSearchParams(location.search).get('activity');
+  if (q) return q;
+  const m = location.hash.match(/activity=(\d+)/);
+  return m ? m[1] : null;
+}
+function setUrlActivity(id, push) {
+  const url = new URL(location.href);
+  if (id) url.searchParams.set('activity', id);
+  else url.searchParams.delete('activity');
+  try {
+    history[push ? 'pushState' : 'replaceState']({ panel: !!id }, '', url);
+    if (push && id) historyPushed = true;
+  } catch (e) {
+    location.hash = id ? `activity=${id}` : '';
+  }
+}
+window.addEventListener('popstate', () => {
+  const id = getUrlActivity();
+  const a = id && ACTIVITIES.find(x => String(x.id) === id);
+  historyPushed = !!a;
+  if (a) openPanel(a, null, true);
+  else closePanel(true);
+});
+
+let currentAct = null, currentPicked = null; // what the panel is showing
+
+function openPanel(a, pickedDate, viaHistory) {
+  const wasOpen = panel.classList.contains('open');
+  const isRefresh = wasOpen && currentAct === a; // live re-render of the same activity
+  if (!wasOpen) lockScroll();
+  if (!viaHistory) setUrlActivity(a.id, !wasOpen);
+  if (!wasOpen) lastFocus = document.activeElement;
+  currentAct = a;
+  currentPicked = pickedDate || null;
+  const c = COLORS[a.id];
+  document.getElementById('panelHead').style.background = c.bg;
+  const eyebrow = document.getElementById('panelEyebrow');
+  eyebrow.textContent = `${a.category} · ${a.subCategory}`;
+  eyebrow.style.color = c.ink;
+  document.getElementById('panelTitle').textContent = a.name;
+  document.getElementById('panelTags').innerHTML = [
+    'Drop-in 免预约', a.ages === 'All ages' ? '全年龄' : a.ages, a.sessions === 1 ? '仅 1 场' : `共 ${a.sessions} 场`,
+  ].map(t => `<span class="tag">${t}</span>`).join('');
+
+  const dates = sessionDates(a);
+  const single = dates.filter(s => !s.skipped).length === 1;
+  const whenLabel = single
+    ? `${zhDate(a.firstDate)}（${ZH_DOW[a.weekday]}）· ${fmtTime(a.startTime)} – ${fmtTime(a.endTime)}`
+    : `每${ZH_DOW[a.weekday]} · ${fmtTime(a.startTime)} – ${fmtTime(a.endTime)}`;
+  const rangeLabel = single ? zhDate(a.firstDate) : `${zhDate(a.firstDate)} – ${zhDate(a.lastDate)}`;
+
+  const stamps = dates.map(s => {
+    const [, m, d] = s.date.split('-').map(Number);
+    const cls = ['dstamp'];
+    if (s.skipped) cls.push('skip');
+    else if (s.date === TODAY) cls.push('today');
+    else if (s.date < TODAY) cls.push('past');
+    if (s.date === pickedDate) cls.push('picked');
+    return `<span class="${cls.join(' ')}" title="${s.skipped ? '当天闭馆，无活动' : s.date}">${EN_MON[m - 1]} ${pad(d)}</span>`;
+  }).join('');
+  const skipNote = a.exceptions.length
+    ? `<p class="skip-note">⚠ ${a.exceptions.map(parseException).map(zhDate).join('、')}为法定假日，图书馆闭馆，当天暂停一次。</p>` : '';
+
+  document.getElementById('panelBody').innerHTML = `
+    <div class="sec-label">简介</div>
+    <p class="desc"><strong>${ZH_BRIEF[a.id] || ''}</strong></p>
+    <p class="desc">${a.desc}</p>
+    <div class="sec-label">信息</div>
+    <dl class="meta">
+      <dt>时间</dt><dd>${whenLabel}</dd>
+      <dt>日期</dt><dd>${rangeLabel}<small>${a.season} · 活动编号 ${a.number}</small></dd>
+      <dt>地点</dt><dd>${a.facility}<small>${a.center.address} · ${a.center.phone}</small></dd>
+      <dt>名额</dt><dd>${a.spaceStatus.replace('openings remaining', '个名额（先到先得）')}</dd>
+    </dl>
+    <div class="sec-label">全部日期</div>
+    <div class="dates">${stamps}</div>
+    ${skipNote}
+    <div class="actions">
+      <a class="abtn" id="actGcal" href="${gcalUrl(a)}" target="_blank" rel="noopener">加入 Google 日历</a>
+      <button class="abtn" id="actIcs">加入 Apple 日历 (.ics)</button>
+      <button class="abtn" id="actShare">分享链接</button>
+    </div>
+    <a class="go" href="${a.url}" target="_blank" rel="noopener">在官网查看详情 ↗</a>
+  `;
+  document.getElementById('actIcs').addEventListener('click', () => downloadIcs(a));
+  document.getElementById('actShare').addEventListener('click', () => shareActivity(a));
+  panel.classList.add('open');
+  panel.setAttribute('aria-hidden', 'false');
+  scrim.classList.add('show');
+  if (!isRefresh) panel.scrollTop = 0;
+  if (!wasOpen) document.getElementById('panelClose').focus();
+}
+
+function closePanel(viaHistory) {
+  if (!panel.classList.contains('open')) return;
+  currentAct = null;
+  currentPicked = null;
+  panel.classList.remove('open');
+  panel.setAttribute('aria-hidden', 'true');
+  scrim.classList.remove('show');
+  unlockScroll();
+  if (lastFocus) lastFocus.focus();
+  if (!viaHistory) {
+    if (historyPushed) { historyPushed = false; history.back(); }
+    else setUrlActivity(null, false);
+  }
+}
+document.getElementById('panelClose').addEventListener('click', () => closePanel());
+scrim.addEventListener('click', () => closePanel());
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && panel.classList.contains('open')) closePanel(); });
+
+// ---------- share & add-to-calendar ----------
+function deepLink(id) {
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    const u = new URL(location.href);
+    u.search = '?activity=' + id;
+    u.hash = '';
+    return u.toString();
+  }
+  return location.href.split(/[?#]/)[0] + '#activity=' + id;
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+async function copyText(s) {
+  try { await navigator.clipboard.writeText(s); return true; } catch (e) { /* non-secure context */ }
+  const ta = document.createElement('textarea');
+  ta.value = s;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+  return ok;
+}
+
+async function shareActivity(a) {
+  const url = deepLink(a.id);
+  const when = a.sessions === 1
+    ? `${zhDate(a.firstDate)}（${ZH_DOW[a.weekday]}）${a.timeRange}`
+    : `每${ZH_DOW[a.weekday]} ${a.timeRange}`;
+  if (navigator.share) {
+    try { await navigator.share({ title: a.name, text: `${a.name} · ${when} @ ${a.center.name}`, url }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  if (await copyText(url)) toast('链接已复制');
+  else prompt('请手动复制此链接：', url);
+}
+
+function activityNotes(a) {
+  return [
+    ZH_BRIEF[a.id],
+    a.desc,
+    a.exceptions.length ? `注意：${a.exceptions.map(parseException).map(zhDate).join('、')}图书馆闭馆，当天暂停一次。` : '',
+    `官网：${a.url}`,
+    `日历页：${deepLink(a.id)}`,
+  ].filter(Boolean).join('\n\n');
+}
+
+function gcalUrl(a) {
+  const d = a.firstDate.replace(/-/g, '');
+  const p = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `${a.name}（${a.center.name}）`,
+    dates: `${d}T${a.startTime.replace(/:/g, '')}/${d}T${a.endTime.replace(/:/g, '')}`,
+    ctz: 'America/Toronto',
+    details: activityNotes(a),
+    location: `${a.facility}, ${a.center.address}`,
+  });
+  if (a.sessions > 1) p.set('recur', 'RRULE:FREQ=WEEKLY;UNTIL=' + a.lastDate.replace(/-/g, ''));
+  return 'https://calendar.google.com/calendar/render?' + p.toString();
+}
+
+function icsEscape(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+}
+function icsFold(line) {
+  const out = [];
+  while (line.length > 74) { out.push(line.slice(0, 74)); line = ' ' + line.slice(74); }
+  out.push(line);
+  return out.join('\r\n');
+}
+function icsFor(a) {
+  const dt = (d, t) => d.replace(/-/g, '') + 'T' + t.replace(/:/g, '');
+  // UNTIL only needs to be >= the last occurrence; next-day 09:00Z covers
+  // any Toronto local time without ever reaching a following weekly slot
+  const after = parseIso(a.lastDate);
+  after.setDate(after.getDate() + 1);
+  const until = iso(after.getFullYear(), after.getMonth() + 1, after.getDate()).replace(/-/g, '');
+  const dtstamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+  const lines = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//weekRecord//sheridan-library//EN', 'CALSCALE:GREGORIAN',
+    'BEGIN:VTIMEZONE', 'TZID:America/Toronto',
+    'BEGIN:DAYLIGHT', 'TZOFFSETFROM:-0500', 'TZOFFSETTO:-0400', 'TZNAME:EDT',
+    'DTSTART:19700308T020000', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU', 'END:DAYLIGHT',
+    'BEGIN:STANDARD', 'TZOFFSETFROM:-0400', 'TZOFFSETTO:-0500', 'TZNAME:EST',
+    'DTSTART:19701101T020000', 'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU', 'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    `UID:sheridan-${a.id}-${a.number}@weekrecord`,
+    `DTSTAMP:${dtstamp}`,
+    `DTSTART;TZID=America/Toronto:${dt(a.firstDate, a.startTime)}`,
+    `DTEND;TZID=America/Toronto:${dt(a.firstDate, a.endTime)}`,
+  ];
+  if (a.sessions > 1) lines.push(`RRULE:FREQ=WEEKLY;UNTIL=${until}T090000Z`);
+  for (const ex of a.exceptions.map(parseException)) {
+    lines.push(`EXDATE;TZID=America/Toronto:${dt(ex, a.startTime)}`);
+  }
+  lines.push(
+    `SUMMARY:${icsEscape(`${a.name}（${a.center.name}）`)}`,
+    `DESCRIPTION:${icsEscape(activityNotes(a))}`,
+    `LOCATION:${icsEscape(`${a.facility}, ${a.center.address}`)}`,
+    `URL:${a.url}`,
+    'END:VEVENT', 'END:VCALENDAR');
+  return lines.map(icsFold).join('\r\n') + '\r\n';
+}
+function downloadIcs(a) {
+  const blob = new Blob([icsFor(a)], { type: 'text/calendar;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `sheridan-${a.id}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+  toast('已下载日历文件，打开即可添加');
+}
+
+// ---------- live refresh via public CORS proxies ----------
+// The official API sends no CORS headers, so we relay the GET endpoints
+// through public proxies; on any failure the embedded snapshot stands.
+const PROXIES = [
+  u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
+  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+];
+async function fetchViaProxy(url) {
+  for (const wrap of PROXIES) {
+    try {
+      const r = await fetch(wrap(url), { signal: AbortSignal.timeout(9000) });
+      if (r.ok) return await r.json();
+    } catch (e) { /* try next proxy */ }
+  }
+  throw new Error('all proxies failed');
+}
+async function refreshLive() {
+  const results = await Promise.allSettled(ACTIVITIES.map(async a => {
+    const d = (await fetchViaProxy(
+      `https://anc.ca.apm.activecommunities.com/activemississauga/rest/activity/detail/${a.id}?locale=en-US`
+    )).body.detail;
+    let datesChanged = false;
+    if (d.space_status) a.spaceStatus = d.space_status;
+    if (d.first_date && d.first_date !== a.firstDate) { a.firstDate = d.first_date; datesChanged = true; }
+    if (d.last_date && d.last_date !== a.lastDate) { a.lastDate = d.last_date; datesChanged = true; }
+    const n = d.other_info && d.other_info.sessions;
+    if (n && n !== a.sessions) { a.sessions = n; datesChanged = true; }
+    return datesChanged;
+  }));
+  const ok = results.filter(r => r.status === 'fulfilled');
+  if (!ok.length) return; // offline or proxies dead: snapshot stands, say nothing
+  if (ok.some(r => r.value)) {
+    rebuildData();
+    renderTabs();
+    renderCal();
+    renderAgenda();
+  }
+  if (currentAct) openPanel(currentAct, currentPicked, true); // refresh openings
+  const t = new Date();
+  const hm = `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+  document.getElementById('liveStatus').textContent = `· 名额与日期已实时核对（${hm}，${ok.length}/${ACTIVITIES.length} 项成功）`;
+}
+
+document.getElementById('updatedAt').textContent = DATA_UPDATED;
+renderTabs();
+renderCal();
+renderAgenda();
+
+// Open a deep-linked activity, if the URL names one
+const deepId = getUrlActivity();
+const deepAct = deepId && ACTIVITIES.find(a => String(a.id) === deepId);
+
+// On phones, land on today's row in the agenda (first load only).
+// When deep-linked, scroll synchronously so the panel's scroll lock
+// captures the right position.
+if (matchMedia('(max-width: 720px)').matches && document.querySelector('.ag-day.today')) {
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  if (deepAct) document.querySelector('.ag-day.today').scrollIntoView({ block: 'center' });
+  else requestAnimationFrame(() => {
+    document.querySelector('.ag-day.today').scrollIntoView({ block: 'center' });
+  });
+}
+if (deepAct) openPanel(deepAct, null, true);
+
+refreshLive();
+</script>
+</body>
+</html>
